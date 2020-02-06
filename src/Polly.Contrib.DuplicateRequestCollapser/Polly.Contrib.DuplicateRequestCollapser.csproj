@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net461;net472</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <AssemblyName>Polly.Contrib.DuplicateRequestCollapser</AssemblyName>
+    <RootNamespace>Polly.Contrib.DuplicateRequestCollapser</RootNamespace>
+    <Version>0.1.0-v010-0001</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <PackageVersion>0.1.0-v010-0001</PackageVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0.0</InformationalVersion>
+    <Company>App vNext</Company>
+    <Copyright>Copyright (c) 2020, App vNext and contributors</Copyright>
+    <Description>Polly.Contrib.DuplicateRequestCollapser is a Polly policy to collapse concurrent duplicate requests to a single execution, integrating with the Polly resilience project for .NET</Description>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>App vNext</Authors>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+  <PropertyGroup Label="SourceLink">
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup Label="SourceLink">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Polly.Contrib.DuplicateRequestCollapser.Specs, PublicKey=00240000048000009400000006020000002400005253413100040000010001000da0771844e451d0e49809f724c45ab416fb6846b013a26a5c81b95b13f1231de7af634435318ac92d96f32e8d45e3f9668bff09e876d0fa84d01595e8117121152e7cecbc957bb8980562c73de847fdd36b3f8c78555a6dddf0986763ebd1cc7b4ac36757e3ac8548ef65addb6db87054759ffe131ae55b54690d5b96d4d1d5</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Polly" Version="[7.2.0,8.0)" />
+  </ItemGroup>
+  <PropertyGroup Label="NuspecProperties">
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <AssemblyTitle>Polly.Contrib.DuplicateRequestCollapser</AssemblyTitle>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <PackageIconUrl>https://raw.github.com/App-vNext/Polly/master/Polly.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/Polly-Contrib/Polly.Contrib.DuplicateRequestCollapser</PackageProjectUrl>
+    <PackageTags>Exception Handling Resilience Transient Fault Policy Polly</PackageTags>
+    <PackageReleaseNotes>See https://github.com/Polly-Contrib/Polly.Contrib.DuplicateRequestCollapser/blob/master/CHANGELOG.md for details</PackageReleaseNotes>
+  </PropertyGroup>
+</Project>
