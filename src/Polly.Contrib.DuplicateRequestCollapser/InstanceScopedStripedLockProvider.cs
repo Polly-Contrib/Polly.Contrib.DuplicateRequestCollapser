@@ -7,7 +7,8 @@ namespace Polly.Contrib.DuplicateRequestCollapser
 	/// Provides a lock scoped to this instance of <see cref="InstanceScopedStripedLockProvider"/>.
 	/// This lock provider will spread the locks per key, reducing contention and CPU usage, and
 	/// is recommended for all use cases.<br/>
-	/// This class uses about 4096 bytes of RAM.
+	/// This class uses about 4096 bytes of RAM. If you cannot afford this memory usage, please use
+	/// <see cref="InstanceScopedLockProvider"/>.
 	/// </summary>
 	public class InstanceScopedStripedLockProvider : ISyncLockProvider
 	{
