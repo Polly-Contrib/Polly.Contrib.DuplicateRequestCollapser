@@ -18,7 +18,7 @@ Additionally, some users have a requirement for a distributed lock on a distribu
 
 ## What is the v0.2.0 locking implementation? How does it perform?
 
-The v0.2.0 default implementation is a striped lock which uses 4K of memory. Locks are spread through buckets to reduce contention and avoid kernel context switching. The buckets are scoped to the policy instance. The lock is not held over slow calls to the underlying system; only for order-of-nanosecond-to-microsecond atomic operations on `ConcurrentDictionary<,>`.
+The v0.2.0 default implementation is a striped lock which uses 4096 bytes of memory (4K). Locks are spread through buckets to reduce contention and avoid kernel context switching. `Interlocked.CompareExchange` and `Thread.Yield` are used as a spin lock. The buckets are scoped to the policy instance. The lock is not held over slow calls to the underlying system; only for order-of-nanosecond-to-microsecond atomic operations on `ConcurrentDictionary<,>`.
 
 Measured on a development machine in a [synthetic benchmark](https://github.com/reisenberger/LockContentionBenchMark_Issue657/) in which up to [50 parallel calls blocked while contending the lock](https://github.com/reisenberger/LockContentionBenchMark_Issue657/blob/master/ParallelContention50/ConcurrentDictionaryLockContention50.Benchmarks-report-github.md) ([notes](https://github.com/reisenberger/LockContentionBenchMark_Issue657/blob/master/BenchmarkNotes.md)), this lock implementation added an overall 20-30 microseconds (1/30000 to 1/50000 of a second) to the aggregate completion of 50 contending calls.  
 
