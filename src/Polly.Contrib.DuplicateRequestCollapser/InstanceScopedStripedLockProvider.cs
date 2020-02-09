@@ -55,10 +55,14 @@ namespace Polly.Contrib.DuplicateRequestCollapser
 				//  quickly, regardless of lock contention
 				// https://stackoverflow.com/questions/11001760/monitor-enter-and-monitor-exit-in-different-threads
 
-				// Get a hash based on the key, use this to lock on a specific int in the array. The array is designed
-				// to be small enough to not use very much memory, but large enough to avoid collisions.
-				// Even if there is a collision, it will be resolved very quickly.
-				_hash = (uint)(key ?? string.Empty).GetHashCode() % (uint)provider.keyLocks.Length;
+				// make unchecked just in case compiler is doing extra checks in the int to uint cast
+				unchecked
+				{
+					// Get a hash based on the key, use this to lock on a specific int in the array. The array is designed
+					// to be small enough to not use very much memory, but large enough to avoid collisions.
+					// Even if there is a collision, it will be resolved very quickly.
+					_hash = (uint)(key ?? string.Empty).GetHashCode() % (uint)provider.keyLocks.Length;
+				}
 
 				// To get the lock, we must change the int at hash index from a 0 to a 1. If the value is
 				//  already a 1, we don't get the lock. The return value must be 0 (the original value of the int).
