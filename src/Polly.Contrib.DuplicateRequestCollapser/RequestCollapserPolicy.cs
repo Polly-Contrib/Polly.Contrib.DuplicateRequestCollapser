@@ -11,7 +11,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
     public partial class RequestCollapserPolicy : Policy, ISyncRequestCollapserPolicy
     {
         internal static IKeyStrategy DefaultKeyStrategy = DuplicateRequestCollapser.DefaultKeyStrategy.Instance;
-        internal static ISyncLockProvider GetDefaultLockProvider() => new InstanceScopedLockProvider(); 
+        internal static ISyncLockProvider GetDefaultLockProvider() => new InstanceScopedStripedLockProvider(); 
 
         private readonly ConcurrentDictionary<string, Lazy<object>> _collapser = new ConcurrentDictionary<string, Lazy<object>>();
         private readonly IKeyStrategy _keyStrategy;

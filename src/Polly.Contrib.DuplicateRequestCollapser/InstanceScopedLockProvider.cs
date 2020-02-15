@@ -5,6 +5,11 @@ namespace Polly.Contrib.DuplicateRequestCollapser
 {
     /// <summary>
     /// Provides a lock scoped to this instance of <see cref="InstanceScopedLockProvider"/>.
+    /// This is a reference implementation of locking and may have performance issues with high concurrent
+    /// request counts and high CPU core counts.
+    /// <br/>
+    /// Please use <see cref="InstanceScopedStripedLockProvider"/>, which locks per key and has
+    /// much lower CPU usage, especially as more concurrent requests are made on higher core counts.
     /// </summary>
     public class InstanceScopedLockProvider : ISyncLockProvider
     {
@@ -26,7 +31,11 @@ namespace Polly.Contrib.DuplicateRequestCollapser
         {
             private InstanceScopedLockProvider _lockProvider;
 
-            internal InstanceScopedLockReleaser(InstanceScopedLockProvider provider)
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="provider">Lock provider</param>
+            public InstanceScopedLockReleaser(InstanceScopedLockProvider provider)
             {
                 _lockProvider = provider;
             }

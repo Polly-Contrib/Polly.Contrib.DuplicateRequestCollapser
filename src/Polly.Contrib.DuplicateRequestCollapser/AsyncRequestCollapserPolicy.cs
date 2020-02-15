@@ -11,7 +11,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
     /// </summary>
     public partial class AsyncRequestCollapserPolicy : AsyncPolicy, IAsyncRequestCollapserPolicy
     {
-        internal static IAsyncLockProvider GetDefaultLockProvider() => new AsyncWrapperLockProvider(new InstanceScopedLockProvider());
+        internal static IAsyncLockProvider GetDefaultLockProvider() => new AsyncWrapperLockProvider(new InstanceScopedStripedLockProvider());
 
         private readonly ConcurrentDictionary<string, Lazy<Task<object>>> _collapser = new ConcurrentDictionary<string, Lazy<Task<object>>>();
         private readonly IKeyStrategy _keyStrategy;

@@ -86,6 +86,29 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             lockAcquireCount.Should().Be(2);
         }
 
+        [Fact]
+        public void Should_execute_through_CollapserPolicy_using_configured_striped_lock()
+        {
+            // Arrange
+            ISyncLockProvider underlyingLock = new InstanceScopedStripedLockProvider();
+            int lockAcquireCount = 0;
+            Mock<ISyncLockProvider> lockProviderMock = new Mock<ISyncLockProvider>();
+            lockProviderMock
+                .Setup(m => m.AcquireLock(It.IsAny<string>(), It.IsAny<Context>(), It.IsAny<CancellationToken>()))
+                .Returns<string, Context, CancellationToken>((k, c, ct) =>
+                {
+                    lockAcquireCount++;
+                    return underlyingLock.AcquireLock(k, c, ct);
+                });
+
+            var policy = GetPolicy(useCollapser: true, lockProvider: lockProviderMock.Object);
+            var context = new Context(SharedKey);
+
+            ExecuteThroughPolicy(policy, context, 1, false).Wait();
+
+            lockAcquireCount.Should().Be(2);
+        }
+
         private class CustomKeyStrategy : IKeyStrategy
         {
             private Func<Context, string> _strategy;
