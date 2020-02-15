@@ -5,10 +5,10 @@
     <LangVersion>8.0</LangVersion>
     <AssemblyName>Polly.Contrib.DuplicateRequestCollapser</AssemblyName>
     <RootNamespace>Polly.Contrib.DuplicateRequestCollapser</RootNamespace>
-    <Version>0.1.0-v010-0001</Version>
+    <Version>0.2.0-v010-0001</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <PackageVersion>0.1.0-v010-0001</PackageVersion>
-    <FileVersion>0.1.0.0</FileVersion>
+    <PackageVersion>0.2.0-v010-0001</PackageVersion>
+    <FileVersion>0.2.0.0</FileVersion>
     <InformationalVersion>0.2.0.0</InformationalVersion>
     <Company>App vNext</Company>
     <Copyright>Copyright (c) 2020, App vNext and contributors</Copyright>
