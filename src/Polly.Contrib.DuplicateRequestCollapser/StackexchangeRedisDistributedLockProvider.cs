@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +9,8 @@ using StackExchange.Redis;
 namespace Polly.Contrib.DuplicateRequestCollapser
 {
     /// <summary>
-    /// Provides a lock scoped to a distributed key.
+    /// Provides a lock scoped to a distributed key. Unlike other local locks, this lock provider
+    /// can throw an <see cref="OperationCanceledException"/> if the lock attempt times out.
     /// </summary>
     public class StackexchangeRedisDistributedLockProvider : ISyncLockProvider
     {
@@ -38,7 +41,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
         {
             private readonly RedisDistributedCacheLock _distributedLock;
 
-            private StackexchangeRedisDistributedLockProvider _lockProvider;
+            private StackexchangeRedisDistributedLockProvider? _lockProvider;
 
             /// <summary>
             /// Constructor
@@ -64,7 +67,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
             /// <inheritdoc/>
             public void Dispose()
             {
-                StackexchangeRedisDistributedLockProvider provider = _lockProvider;
+                StackexchangeRedisDistributedLockProvider? provider = _lockProvider;
                 if (provider != null && Interlocked.CompareExchange(ref _lockProvider, null, provider) == provider)
                 {
                     _distributedLock.Dispose();
@@ -85,7 +88,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
             public RedisDistributedCacheLock(ConnectionMultiplexer connection, string key, TimeSpan timeout, TimeSpan retry)
             {
                 this.connection = connection;
-                this.lockKey = key;
+                this.lockKey = "LOCK_" + key;
                 this.timeout = timeout;
                 this.retry = retry;
                 lockValue = Environment.MachineName;
@@ -153,7 +156,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
         public ConnectionMultiplexer Connection { get; }
 
         /// <summary>
-        /// Timeout, give up trying to get the distributed lock
+        /// WAit a maximum amount of this time to get the lock, failing if the time to get the lock goes over this value
         /// </summary>
         public TimeSpan Timeout { get; }
 
@@ -163,3 +166,5 @@ namespace Polly.Contrib.DuplicateRequestCollapser
         public TimeSpan Retry { get; }
     }
 }
+
+#nullable restore

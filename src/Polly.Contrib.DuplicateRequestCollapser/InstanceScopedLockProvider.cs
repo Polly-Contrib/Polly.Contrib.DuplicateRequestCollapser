@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Threading;
 
 namespace Polly.Contrib.DuplicateRequestCollapser
@@ -29,7 +31,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
 
         private class InstanceScopedLockReleaser : IDisposable
         {
-            private InstanceScopedLockProvider _lockProvider;
+            private InstanceScopedLockProvider? _lockProvider;
 
             /// <summary>
             /// Constructor
@@ -43,10 +45,8 @@ namespace Polly.Contrib.DuplicateRequestCollapser
             /// <inheritdoc/>
             public void Dispose()
             {
-                var provider = _lockProvider;
-                if (provider is null) { return; }
-
-                if (Interlocked.CompareExchange(ref _lockProvider, null, provider) == provider)
+                InstanceScopedLockProvider? provider = _lockProvider;
+                if (provider != null && Interlocked.CompareExchange(ref _lockProvider, null, provider) == provider)
                 {
                     provider.ReleaseLock();
                 }
@@ -54,3 +54,5 @@ namespace Polly.Contrib.DuplicateRequestCollapser
         }
     }
 }
+
+#nullable restore

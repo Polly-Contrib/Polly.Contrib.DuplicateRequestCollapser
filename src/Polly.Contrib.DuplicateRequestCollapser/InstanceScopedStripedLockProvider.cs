@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Threading;
 
 namespace Polly.Contrib.DuplicateRequestCollapser
@@ -22,7 +24,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
 
 		private class InstanceScopedStripedLockReleaser : IDisposable
 		{
-			private InstanceScopedStripedLockProvider _lockProvider;
+			private InstanceScopedStripedLockProvider? _lockProvider;
 			private uint _hash;
 
 			/// <summary>
@@ -39,7 +41,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
 			[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 			public void Dispose()
 			{
-				InstanceScopedStripedLockProvider provider = _lockProvider;
+				InstanceScopedStripedLockProvider? provider = _lockProvider;
 				if (provider != null && Interlocked.CompareExchange(ref _lockProvider, null, provider) == provider)
 				{
 					provider.keyLocks[_hash] = 0;
@@ -79,3 +81,5 @@ namespace Polly.Contrib.DuplicateRequestCollapser
 		}
 	}
 }
+
+#nullable restore
