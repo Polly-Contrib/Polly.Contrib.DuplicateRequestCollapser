@@ -26,7 +26,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
         public IDisposable AcquireLock(string key, Context context, CancellationToken cancellationToken)
         {
             DistributedLockReleaser distributedLock = new DistributedLockReleaser(key, this);
-            bool gotLock = distributedLock.AcquireLockAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult();
+            bool gotLock = distributedLock.AcquireLock(cancellationToken);
             if (!gotLock)
             {
                 throw new OperationCanceledException("Failed to acquire distributed lock for key " + key);
@@ -55,10 +55,10 @@ namespace Polly.Contrib.DuplicateRequestCollapser
             /// Acquire the distributed lock
             /// </summary>
             /// <param name="cancelToken">Cancel token</param>
-            /// <returns>Task</returns>
-            public Task<bool> AcquireLockAsync(CancellationToken cancelToken)
+            /// <returns>True if lock acquired, false otherwise</returns>
+            public bool AcquireLock(CancellationToken cancelToken)
             {
-                return _distributedLock.AcquireLockAsync(cancelToken);
+                return _distributedLock.AcquireLock(cancelToken);
             }
 
             /// <inheritdoc/>
@@ -91,7 +91,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
                 lockValue = Environment.MachineName;
             }
 
-            public async Task<bool> AcquireLockAsync(CancellationToken cancelToken)
+            public bool AcquireLock(CancellationToken cancelToken)
             {
                 const string script = "local f,k,v f=redis.call k=KEYS[1] v=ARGV[1] if f('get',k) then return 0 end f('set',k,v) f('expire',k,ARGV[2]) return 1";
                 RedisKey[] keys = new RedisKey[] { lockKey };
@@ -101,7 +101,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
                 {
                     try
                     {
-                        hasLock = (int)(await connection.GetDatabase().ScriptEvaluateAsync(script, keys, values));
+                        hasLock = (int)connection.GetDatabase().ScriptEvaluate(script, keys, values);
                         if (hasLock == 1)
                         {
                             return true;
@@ -111,7 +111,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser
                     {
                         // eat any and all exception
                     }
-                    await Task.Delay(retry, cancelToken);
+                    Thread.Sleep(retry);
                 }
                 return false;
             }
