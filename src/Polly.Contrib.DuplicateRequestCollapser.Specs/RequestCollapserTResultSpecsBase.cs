@@ -50,53 +50,21 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         {
             ResultFactory = () => throw new Exception(_rng.Next().ToString());
             (int actualInvocations, Task[] tasks) = Execute_parallel_delegates_through_policy_with_key_strategy(parallelism, useCollapser: true, sameKey: true);
-
             actualInvocations.Should().Be(1);
+            tasks.First().IsFaulted.Should().BeTrue();
 
-            Exception first = null;
-            try
-            {
-                _ = ((Task<ResultClass>)tasks[0]).Result;
-            }
-            catch (Exception ex)
-            {
-                first = ex.InnerException;
-            }
-
-            // All executions should have been handled the same single result instance.
-            ValidateAllTasksHaveTheSameException(tasks, first.Message);
+            Exception first = tasks.First().Exception.InnerException;
+            // All executions should have been handed the same single result instance.
+            tasks.Select(x => x.Exception.InnerException).ShouldAllBeEquivalentTo(first);
 
             (actualInvocations, tasks) = Execute_parallel_delegates_through_policy_with_key_strategy(parallelism, useCollapser: true, sameKey: true);
             actualInvocations.Should().Be(2);
+            tasks.First().IsFaulted.Should().BeTrue();
 
-            Exception second = null;
-            try
-            {
-                _ = ((Task<ResultClass>)tasks[0]).Result;
-            }
-            catch (Exception ex)
-            {
-                second = ex.InnerException;
-            }
+            Exception second = tasks.First().Exception.InnerException;
             // The result of the second batch should not be the same as the first batch.
             second.Message.Should().NotBe(first.Message);
-            ValidateAllTasksHaveTheSameException(tasks, second.Message);
-        }
-
-        private void ValidateAllTasksHaveTheSameException(Task[] tasks, string message)
-        {
-            tasks.All(t =>
-            {
-                try
-                {
-                    _ = ((Task<ResultClass>)t).Result;
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    return string.Equals(ex.InnerException.Message, message);
-                }
-            }).Should().BeTrue();
+            tasks.Select(x => x.Exception.InnerException).ShouldAllBeEquivalentTo(second);
         }
     }
 }
