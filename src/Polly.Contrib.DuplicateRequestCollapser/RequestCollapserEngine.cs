@@ -31,30 +31,33 @@ namespace Polly.Contrib.DuplicateRequestCollapser
                 lazy = collapser.GetOrAdd(key, new Lazy<object>(() => action(context, cancellationToken), LazyThreadSafetyMode.ExecutionAndPublication)); // Note: per documentation, LazyThreadSafetyMode.ExecutionAndPublication guarantees single execution, but means the executed code must not lock, as this risks deadlocks.  We should document.
             }
 
-            TResult result = (TResult)lazy.Value;
-
-            // As soon as the lazy has returned a result to one thread, the concurrent request set is over, so we evict the lazy from the ConcurrentDictionary.
-            // We need to evict within a lock, to be sure we are not, due to potential race with new threads populating, evicting a different lazy created by a different thread.
-            // To reduce lock contention, first check outside the lock whether we still need to remove it (we will double-check inside the lock).
-            if (collapser.TryGetValue(key, out Lazy<object> currentValue))
+            try
             {
-                if (currentValue == lazy)
+                return (TResult)lazy.Value;
+            }
+            finally
+            {
+                // As soon as the lazy has returned a result to one thread, the concurrent request set is over, so we evict the lazy from the ConcurrentDictionary.
+                // We need to evict within a lock, to be sure we are not, due to potential race with new threads populating, evicting a different lazy created by a different thread.
+                // To reduce lock contention, first check outside the lock whether we still need to remove it (we will double-check inside the lock).
+                if (collapser.TryGetValue(key, out Lazy<object> currentValue))
                 {
-                    using (lockProvider.AcquireLock(key, context, cancellationToken))
+                    if (currentValue == lazy)
                     {
-                        // Double-check that there has not been a race which updated the dictionary with a new value.
-                        if (collapser.TryGetValue(key, out Lazy<object> valueWithinLock))
+                        using (lockProvider.AcquireLock(key, context, cancellationToken))
                         {
-                            if (valueWithinLock == lazy)
+                            // Double-check that there has not been a race which updated the dictionary with a new value.
+                            if (collapser.TryGetValue(key, out Lazy<object> valueWithinLock))
                             {
-                                collapser.TryRemove(key, out _);
+                                if (valueWithinLock == lazy)
+                                {
+                                    collapser.TryRemove(key, out _);
+                                }
                             }
                         }
                     }
                 }
             }
-
-            return result;
         }
     }
 }

@@ -50,7 +50,13 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             ReleaseHoldingGate();
 
             // Wait for task completion.
-            Task.WaitAll(ConcurrentTasks);
+            try
+            {
+                Task.WaitAll(ConcurrentTasks);
+            }
+            catch
+            {
+            }
             testOutputHelper.WriteLine("All tasks completed.");
 
             // Return results to caller; the caller is responsible for asserting.
