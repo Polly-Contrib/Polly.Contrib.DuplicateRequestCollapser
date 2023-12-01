@@ -26,6 +26,8 @@ When a request arrives, the policy checks if it has a record of a pending downst
 
 Requests are detected to be duplicates by matching key, making the policy is easy to combine with key-based caches.
 
+Bear in mind, the collapser is not re-entrant safe. Do not call the collapser inside itself.
+
 ## How to use `RequestCollapserPolicy`?
 
 
