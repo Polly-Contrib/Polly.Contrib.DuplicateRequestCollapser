@@ -6,7 +6,7 @@
     <AssemblyName>Polly.Contrib.DuplicateRequestCollapser</AssemblyName>
     <RootNamespace>Polly.Contrib.DuplicateRequestCollapser</RootNamespace>
     <Version>0.3.0-v030-0001</Version>
-    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <AssemblyVersion>0.3.0.0</AssemblyVersion>
     <PackageVersion>0.3.0-v030-0001</PackageVersion>
     <FileVersion>0.3.0.0</FileVersion>
     <InformationalVersion>0.3.0.0</InformationalVersion>

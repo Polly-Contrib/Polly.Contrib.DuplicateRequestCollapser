@@ -48,23 +48,23 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         }
 
         [Fact]
-        public void Should_execute_sequential_duplicate_tasks_each_separately_despite_through_CollapserPolicy()
+        public async System.Threading.Tasks.Task Should_execute_sequential_duplicate_tasks_each_separately_despite_through_CollapserPolicy()
         {
             // Arrange
             var policy = GetPolicy(useCollapser: true);
             var context = new Context(SharedKey);
 
             var first = ExecuteThroughPolicy(policy, context, 1, false);
-            first.Wait();
+            await first;
 
             var second = ExecuteThroughPolicy(policy, context, 2, false);
-            second.Wait();
+            await second;
 
             ActualExecutions.Should().Be(2);
         }
 
         [Fact]
-        public void Should_execute_through_CollapserPolicy_using_configured_lock()
+        public async System.Threading.Tasks.Task Should_execute_through_CollapserPolicy_using_configured_lock()
         {
             // Arrange
             ISyncLockProvider underlyingLock = new InstanceScopedLockProvider();
@@ -81,13 +81,13 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             var policy = GetPolicy(useCollapser: true, lockProvider: lockProviderMock.Object);
             var context = new Context(SharedKey);
 
-            ExecuteThroughPolicy(policy, context, 1, false).Wait();
+            await ExecuteThroughPolicy(policy, context, 1, false);
 
             lockAcquireCount.Should().Be(2);
         }
 
         [Fact]
-        public void Should_execute_through_CollapserPolicy_using_configured_striped_lock()
+        public async System.Threading.Tasks.Task Should_execute_through_CollapserPolicy_using_configured_striped_lock()
         {
             // Arrange
             ISyncLockProvider underlyingLock = new InstanceScopedStripedLockProvider();
@@ -104,7 +104,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             var policy = GetPolicy(useCollapser: true, lockProvider: lockProviderMock.Object);
             var context = new Context(SharedKey);
 
-            ExecuteThroughPolicy(policy, context, 1, false).Wait();
+            await ExecuteThroughPolicy(policy, context, 1, false);
 
             lockAcquireCount.Should().Be(2);
         }
