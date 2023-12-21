@@ -52,6 +52,9 @@
     <PackageIconUrl>https://raw.github.com/App-vNext/Polly/master/Polly.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/Polly-Contrib/Polly.Contrib.DuplicateRequestCollapser</PackageProjectUrl>
     <PackageTags>Exception Handling Resilience Transient Fault Policy Polly</PackageTags>
-    <PackageReleaseNotes>See https://github.com/Polly-Contrib/Polly.Contrib.DuplicateRequestCollapser/blob/master/CHANGELOG.md for details</PackageReleaseNotes>
+    <PackageReleaseNotes>Custom build because the other nuget isn't getting a response from the owner</PackageReleaseNotes>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Polly.Contrib.DuplicateRequestCollapser </Title>
+    <PackageId>DigitalRuby.$(AssemblyName)</PackageId>
   </PropertyGroup>
 </Project>
