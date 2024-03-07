@@ -39,7 +39,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             ConcurrentTasks = new Task[parallelism];
 
             testOutputHelper.WriteLine("Queueing work.");
-            QueueTasks(parallelism, useCollapser, sameKey, overrideKeyStrategy);
+            var contexts = QueueTasks(parallelism, useCollapser, sameKey, overrideKeyStrategy);
 
             testOutputHelper.WriteLine("Waiting for all queued work to start and reach the holding gate.");
             WaitForAllTasksToBeStarted(parallelism);
@@ -58,22 +58,26 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             {
             }
             testOutputHelper.WriteLine("All tasks completed.");
-
+            for (int i = 0; i < contexts.Length; i++)
+            {
+                ResilienceContextPool.Shared.Return(contexts[i]);
+            }
             // Return results to caller; the caller is responsible for asserting.
             return (ActualExecutions, ConcurrentTasks);
         }
 
-        private void QueueTasks(int parallelism, bool useCollapser, bool sameKey, IKeyStrategy overrideKeyStrategy = null)
+        private ResilienceContext[] QueueTasks(int parallelism, bool useCollapser, bool sameKey, IKeyStrategy overrideKeyStrategy = null)
         {
             ResiliencePipeline policy = GetResiliencePipeline(useCollapser, overrideKeyStrategy);
+            ResilienceContext[] resilienceContexts = new ResilienceContext[parallelism];
             for (int i = 0; i < parallelism; i++)
             {
                 string key = sameKey ? SharedKey : i.ToString();
                 ResilienceContext context = ResilienceContextPool.Shared.Get(key);
-
+                resilienceContexts[i] = context;
                 ConcurrentTasks[i] = ExecuteThroughPolicy(policy, context, i, true);
-                //ResilienceContextPool.Shared.Return(context);
             }
+            return resilienceContexts;
         }
 
         protected abstract ResiliencePipeline GetResiliencePipeline(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ILockProvider lockProvider = null);

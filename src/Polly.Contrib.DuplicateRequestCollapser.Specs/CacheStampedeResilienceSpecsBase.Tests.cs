@@ -56,12 +56,12 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 
             var first = ExecuteThroughPolicy(policy, context, 1, false);
             await first;
-            //ResilienceContextPool.Shared.Return(context);
+            ResilienceContextPool.Shared.Return(context);
 
             context = ResilienceContextPool.Shared.Get(SharedKey);
             var second = ExecuteThroughPolicy(policy, context, 2, false);
             await second;
-            //ResilienceContextPool.Shared.Return(context);
+            ResilienceContextPool.Shared.Return(context);
 
             ActualExecutions.Should().Be(2);
         }
