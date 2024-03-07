@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    public abstract partial class RequestCollapserSpecsBase
+    public abstract partial class CacheStampedeResilienceSpecsBase
     {
         private ITestOutputHelper testOutputHelper; 
         
@@ -20,7 +20,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         protected Task[] ConcurrentTasks;
         private ManualResetEventSlim ConcurrentExecutionHoldingGate = new ManualResetEventSlim();
 
-        protected RequestCollapserSpecsBase(ITestOutputHelper testOutputHelper)
+        protected CacheStampedeResilienceSpecsBase(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
         }
@@ -39,7 +39,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             ConcurrentTasks = new Task[parallelism];
 
             testOutputHelper.WriteLine("Queueing work.");
-            QueueTasks(parallelism, useCollapser, sameKey, overrideKeyStrategy);
+            var contexts = QueueTasks(parallelism, useCollapser, sameKey, overrideKeyStrategy);
 
             testOutputHelper.WriteLine("Waiting for all queued work to start and reach the holding gate.");
             WaitForAllTasksToBeStarted(parallelism);
@@ -58,26 +58,31 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             {
             }
             testOutputHelper.WriteLine("All tasks completed.");
-
+            for (int i = 0; i < contexts.Length; i++)
+            {
+                ResilienceContextPool.Shared.Return(contexts[i]);
+            }
             // Return results to caller; the caller is responsible for asserting.
             return (ActualExecutions, ConcurrentTasks);
         }
 
-        private void QueueTasks(int parallelism, bool useCollapser, bool sameKey, IKeyStrategy overrideKeyStrategy = null)
+        private ResilienceContext[] QueueTasks(int parallelism, bool useCollapser, bool sameKey, IKeyStrategy overrideKeyStrategy = null)
         {
-            IsPolicy policy = GetPolicy(useCollapser, overrideKeyStrategy);
+            ResiliencePipeline policy = GetResiliencePipeline(useCollapser, overrideKeyStrategy);
+            ResilienceContext[] resilienceContexts = new ResilienceContext[parallelism];
             for (int i = 0; i < parallelism; i++)
             {
                 string key = sameKey ? SharedKey : i.ToString();
-                Context context = new Context(key);
-
+                ResilienceContext context = ResilienceContextPool.Shared.Get(key);
+                resilienceContexts[i] = context;
                 ConcurrentTasks[i] = ExecuteThroughPolicy(policy, context, i, true);
             }
+            return resilienceContexts;
         }
 
-        protected abstract IsPolicy GetPolicy(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ISyncLockProvider lockProvider = null);
+        protected abstract ResiliencePipeline GetResiliencePipeline(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ILockProvider lockProvider = null);
 
-        protected abstract Task ExecuteThroughPolicy(IsPolicy policy, Context context, int j, bool gated);
+        protected abstract Task ExecuteThroughPolicy(ResiliencePipeline policy, ResilienceContext context, int j, bool gated);
 
         protected void QueueTaskAtHoldingGate()
         {

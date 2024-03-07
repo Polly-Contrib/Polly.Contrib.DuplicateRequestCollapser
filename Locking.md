@@ -1,16 +1,16 @@
-# `RequestCollapserPolicy` and locking
+# `CacheStampedeResilienceStrategy` and locking
 
-`ISyncLockProvider`/`IAsyncLockProvider` provide extension points to vary the locking mechanism used by `RequestCollapserPolicy`.
+`ILockProvider` provides extension points to vary the locking mechanism used by `CacheStampedeResilienceStrategy`.
 
-## How does `RequestCollapserPolicy` use locking internally?
+## How does `CacheStampedeResilienceStrategy` use locking internally?
 
-`RequestCollapserPolicy` uses a lock internally to accurately identify concurrent duplicate calls.
+`CacheStampedeResilienceStrategy` uses a lock internally to accurately identify concurrent duplicate calls.
 
 The lock is _**not**_ held over slow calls to the underlying system; only for order-of-nanosecond-to-microsecond timings to atomically check or update the internal store of pending downstream calls.  
 
 The underlying mechanism for collapsing duplicate requests is a `ConcurrentDictionary` by key, of `Lazy<T>`: a `ConcurrentDictionary<string, Lazy<T>>` for sync and `ConcurrentDictionary<string, Lazy<Task<T>>>` for async. 
 
-## Doesn't `ConcurrentDictionary` include its own internal lock? Why does `RequestCollapserPolicy` add extra locking?
+## Doesn't `ConcurrentDictionary` include its own internal lock? Why does `CacheStampedeResilienceStrategy` add extra locking?
 
 Direct methods on `ConcurrentDictionary<,>` are thread-safe and offer atomic methods for various operations, but there is no atomic overload for a particular operation required by the policy implementation: to atomically remove a given key from the dictionary if it matches a given comparand.
 
