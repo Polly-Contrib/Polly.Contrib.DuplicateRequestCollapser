@@ -3,9 +3,9 @@ using Xunit.Abstractions;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    public class RequestCollapserSpecs : CacheStampedeResilienceSpecsBase
+    public class CacheStampedeResilienceSpecs : CacheStampedeResilienceSpecsBase
     {
-        public RequestCollapserSpecs(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+        public CacheStampedeResilienceSpecs(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
         protected override ResiliencePipeline GetResiliencePipeline(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ILockProvider lockProvider = null)
         {

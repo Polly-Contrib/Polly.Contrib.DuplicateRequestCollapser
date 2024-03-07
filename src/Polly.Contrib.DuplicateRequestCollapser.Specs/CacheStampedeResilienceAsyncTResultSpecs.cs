@@ -4,9 +4,9 @@ using Xunit.Abstractions;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    public class RequestCollapserTResultSpecs : RequestCollapserTResultSpecsBase
+    public class CacheStampedeResilienceAsyncTResultSpecs : CacheStampedeResilienceTResultSpecsBase
     {
-        public RequestCollapserTResultSpecs(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+        public CacheStampedeResilienceAsyncTResultSpecs(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
         private ConcurrentDictionary<(bool, IKeyStrategy, ILockProvider), ResiliencePipeline> PolicyCache = new ConcurrentDictionary<(bool, IKeyStrategy, ILockProvider), ResiliencePipeline>();
 
@@ -28,16 +28,21 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 
         protected override Task ExecuteThroughPolicy(ResiliencePipeline policy, ResilienceContext context, int j, bool gated)
         {
-            return Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(async () =>
             {
                 if (gated) { QueueTaskAtHoldingGate(); }
 
-                return policy.Execute(ctx =>
+                return await policy.ExecuteAsync(ctx =>
                 {
                     UnderlyingExpensiveWork(j);
-                    return ResultFactory();
+
+#if NET6_0_OR_GREATER
+                    return ValueTask.FromResult(ResultFactory());
+#else
+                    return new ValueTask<ResultClass>(ResultFactory());
+#endif
                 }, context);
-            }, TaskCreationOptions.LongRunning);
+            }, TaskCreationOptions.LongRunning).Unwrap();
         }
 
     }

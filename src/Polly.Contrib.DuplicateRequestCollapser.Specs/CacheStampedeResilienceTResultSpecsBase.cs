@@ -7,11 +7,11 @@ using Xunit.Abstractions;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    public abstract class RequestCollapserTResultSpecsBase : CacheStampedeResilienceSpecsBase
+    public abstract class CacheStampedeResilienceTResultSpecsBase : CacheStampedeResilienceSpecsBase
     {
         private Random _rng = new Random();
 
-        protected RequestCollapserTResultSpecsBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+        protected CacheStampedeResilienceTResultSpecsBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
         private protected Func<ResultClass> ResultFactory = () => new ResultClass(ResultPrimitive.Good);
 
