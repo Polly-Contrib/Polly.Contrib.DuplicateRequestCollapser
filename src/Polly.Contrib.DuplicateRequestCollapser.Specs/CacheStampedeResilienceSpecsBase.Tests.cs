@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using FluentAssertions;
-using Moq;
 using Xunit;
+using NSubstitute;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
@@ -72,16 +72,15 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             // Arrange
             ILockProvider underlyingLock = new InstanceScopedLockProvider();
             int lockAcquireCount = 0;
-            Mock<ILockProvider> lockProviderMock = new Mock<ILockProvider>();
-            lockProviderMock
-                .Setup(m => m.AcquireLockAsync(It.IsAny<string>(), It.IsAny<ResilienceContext>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()))
-                .Returns<string, ResilienceContext, CancellationToken, bool>((k, c, ct,cc) =>
+            var lockProviderMock = Substitute.For<ILockProvider>();
+            lockProviderMock.AcquireLockAsync(Arg.Any<string>(), Arg.Any<ResilienceContext>(), Arg.Any<CancellationToken>(), Arg.Any<bool>())
+                .Returns(x=>
                 {
                     lockAcquireCount++;
-                    return underlyingLock.AcquireLockAsync(k, c, ct,cc);
+                    return underlyingLock.AcquireLockAsync(x.ArgAt<string>(0), x.ArgAt<ResilienceContext>(1), x.ArgAt<CancellationToken>(2), x.ArgAt<bool>(3));
                 });
             
-            var policy = GetResiliencePipeline(useCollapser: true, lockProvider: lockProviderMock.Object);
+            var policy = GetResiliencePipeline(useCollapser: true, lockProvider: lockProviderMock);
             var context = ResilienceContextPool.Shared.Get(SharedKey);
 
             await ExecuteThroughPolicy(policy, context, 1, false);
@@ -95,16 +94,15 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
             // Arrange
             ILockProvider underlyingLock = new InstanceScopedStripedLockProvider();
             int lockAcquireCount = 0;
-            Mock<ILockProvider> lockProviderMock = new Mock<ILockProvider>();
-            lockProviderMock
-                .Setup(m => m.AcquireLockAsync(It.IsAny<string>(), It.IsAny<ResilienceContext>(), It.IsAny<CancellationToken>(),It.IsAny<bool>()))
-                .Returns<string, ResilienceContext, CancellationToken,bool>((k, c, ct,cc) =>
+            var lockProviderMock = Substitute.For<ILockProvider>();
+            lockProviderMock.AcquireLockAsync(Arg.Any<string>(), Arg.Any<ResilienceContext>(), Arg.Any<CancellationToken>(), Arg.Any<bool>())
+                .Returns(x =>
                 {
                     lockAcquireCount++;
-                    return underlyingLock.AcquireLockAsync(k, c, ct,cc);
+                    return underlyingLock.AcquireLockAsync(x.ArgAt<string>(0), x.ArgAt<ResilienceContext>(1), x.ArgAt<CancellationToken>(2), x.ArgAt<bool>(3));
                 });
 
-            var policy = GetResiliencePipeline(useCollapser: true, lockProvider: lockProviderMock.Object);
+            var policy = GetResiliencePipeline(useCollapser: true, lockProvider: lockProviderMock);
             var context = ResilienceContextPool.Shared.Get(SharedKey);
 
             await ExecuteThroughPolicy(policy, context, 1, false);
