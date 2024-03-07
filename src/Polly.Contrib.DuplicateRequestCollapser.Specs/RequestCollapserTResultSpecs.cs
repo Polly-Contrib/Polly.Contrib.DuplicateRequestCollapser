@@ -8,25 +8,31 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
     {
         public RequestCollapserTResultSpecs(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-        private ConcurrentDictionary<(bool, IKeyStrategy, ISyncLockProvider), IsPolicy> PolicyCache = new ConcurrentDictionary<(bool, IKeyStrategy, ISyncLockProvider), IsPolicy>();
+        private ConcurrentDictionary<(bool, IKeyStrategy, ILockProvider), ResiliencePipeline> PolicyCache = new ConcurrentDictionary<(bool, IKeyStrategy, ILockProvider), ResiliencePipeline>();
 
-        protected override IsPolicy GetPolicy(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ISyncLockProvider lockProvider = null)
+        protected override ResiliencePipeline GetResiliencePipeline(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ILockProvider lockProvider = null)
         {
             return PolicyCache.GetOrAdd((useCollapser, overrideKeyStrategy, lockProvider), _ =>
             {
+                var options = new CacheStampedeResilienceStrategyOptions();
+                options.KeyStrategy = overrideKeyStrategy ?? options.KeyStrategy;
+                options.LockProvider = lockProvider ?? options.LockProvider;
                 return useCollapser ?
-                    RequestCollapserPolicy<ResultClass>.Create(overrideKeyStrategy ?? RequestCollapserPolicy.DefaultKeyStrategy, lockProvider ?? RequestCollapserPolicy.GetDefaultLockProvider())
-                    : (ISyncPolicy<ResultClass>)Policy.NoOp<ResultClass>();
+                    new ResiliencePipelineBuilder()
+                       .AddCacheStampedeResilience(options)
+                       .Build()
+                    : new ResiliencePipelineBuilder()
+                       .Build();
             });
         }
 
-        protected override Task ExecuteThroughPolicy(IsPolicy policy, Context context, int j, bool gated)
+        protected override Task ExecuteThroughPolicy(ResiliencePipeline policy, ResilienceContext context, int j, bool gated)
         {
             return Task.Factory.StartNew(() =>
             {
                 if (gated) { QueueTaskAtHoldingGate(); }
 
-                return ((ISyncPolicy<ResultClass>)policy).Execute(ctx =>
+                return policy.Execute(ctx =>
                 {
                     UnderlyingExpensiveWork(j);
                     return ResultFactory();

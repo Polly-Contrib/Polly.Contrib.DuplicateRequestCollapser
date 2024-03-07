@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    public abstract class RequestCollapserTResultSpecsBase : RequestCollapserSpecsBase
+    public abstract class RequestCollapserTResultSpecsBase : CacheStampedeResilienceSpecsBase
     {
         private Random _rng = new Random();
 
@@ -16,7 +16,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         private protected Func<ResultClass> ResultFactory = () => new ResultClass(ResultPrimitive.Good);
 
         [Theory]
-        [ClassData(typeof(RequestCollapserTestParallelisms))]
+        [ClassData(typeof(CacheStampedeResilienceTestParallelisms))]
         public async Task Executing_concurrent_duplicate_task_through_CollapserPolicy_should_execute_only_once_and_return_same_single_result_instance(int parallelism)
         {
             (int actualInvocations, Task[] tasks) = Execute_parallel_delegates_through_policy_with_key_strategy(parallelism, useCollapser: true, sameKey: true);
@@ -33,7 +33,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         }
 
         [Theory]
-        [ClassData(typeof(RequestCollapserTestParallelisms))]
+        [ClassData(typeof(CacheStampedeResilienceTestParallelisms))]
         public void Executing_concurrent_duplicate_task_not_through_CollapserPolicy_should_execute_multiple_and_return_separate_result_instances(int parallelism)
         {
             // This test does not test RequestCollapser policy.
@@ -48,7 +48,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         }
 
         [Theory]
-        [ClassData(typeof(RequestCollapserTestParallelisms))]
+        [ClassData(typeof(CacheStampedeResilienceTestParallelisms))]
         public void Executing_concurrent_duplicate_faulted_task_through_CollapserPolicy_should_execute_only_once_and_return_same_single_result_instance(int parallelism)
         {
             ResultFactory = () => throw new Exception(_rng.Next().ToString());

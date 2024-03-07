@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    public abstract partial class RequestCollapserSpecsBase
+    public abstract partial class CacheStampedeResilienceSpecsBase
     {
         private ITestOutputHelper testOutputHelper; 
         
@@ -20,7 +20,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         protected Task[] ConcurrentTasks;
         private ManualResetEventSlim ConcurrentExecutionHoldingGate = new ManualResetEventSlim();
 
-        protected RequestCollapserSpecsBase(ITestOutputHelper testOutputHelper)
+        protected CacheStampedeResilienceSpecsBase(ITestOutputHelper testOutputHelper)
         {
             this.testOutputHelper = testOutputHelper;
         }
@@ -65,19 +65,20 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 
         private void QueueTasks(int parallelism, bool useCollapser, bool sameKey, IKeyStrategy overrideKeyStrategy = null)
         {
-            IsPolicy policy = GetPolicy(useCollapser, overrideKeyStrategy);
+            ResiliencePipeline policy = GetResiliencePipeline(useCollapser, overrideKeyStrategy);
             for (int i = 0; i < parallelism; i++)
             {
                 string key = sameKey ? SharedKey : i.ToString();
-                Context context = new Context(key);
+                ResilienceContext context = ResilienceContextPool.Shared.Get(key);
 
                 ConcurrentTasks[i] = ExecuteThroughPolicy(policy, context, i, true);
+                //ResilienceContextPool.Shared.Return(context);
             }
         }
 
-        protected abstract IsPolicy GetPolicy(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ISyncLockProvider lockProvider = null);
+        protected abstract ResiliencePipeline GetResiliencePipeline(bool useCollapser, IKeyStrategy overrideKeyStrategy = null, ILockProvider lockProvider = null);
 
-        protected abstract Task ExecuteThroughPolicy(IsPolicy policy, Context context, int j, bool gated);
+        protected abstract Task ExecuteThroughPolicy(ResiliencePipeline policy, ResilienceContext context, int j, bool gated);
 
         protected void QueueTaskAtHoldingGate()
         {

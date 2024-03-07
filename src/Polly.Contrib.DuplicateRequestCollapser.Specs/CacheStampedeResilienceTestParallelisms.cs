@@ -2,9 +2,9 @@
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    internal class RequestCollapserTestParallelisms : TheoryData<int>
+    internal class CacheStampedeResilienceTestParallelisms : TheoryData<int>
     {
-        public RequestCollapserTestParallelisms()
+        public CacheStampedeResilienceTestParallelisms()
         {
             Add(2);
             Add(30);

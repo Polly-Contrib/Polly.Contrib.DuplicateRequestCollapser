@@ -6,10 +6,10 @@ using Xunit;
 
 namespace Polly.Contrib.DuplicateRequestCollapser.Specs
 {
-    public abstract partial class RequestCollapserSpecsBase
+    public abstract partial class CacheStampedeResilienceSpecsBase
     {
         [Theory]
-        [ClassData(typeof(RequestCollapserTestParallelisms))]
+        [ClassData(typeof(CacheStampedeResilienceTestParallelisms))]
         public void Should_execute_concurrent_duplicate_task_only_once_when_executed_through_CollapserPolicy(int parallelism)
         {
             Execute_parallel_delegates_through_policy_with_key_strategy(parallelism, useCollapser: true, sameKey: true)
@@ -18,7 +18,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         }
 
         [Theory]
-        [ClassData(typeof(RequestCollapserTestParallelisms))]
+        [ClassData(typeof(CacheStampedeResilienceTestParallelisms))]
         public void Should_execute_concurrent_duplicate_task_multiple_times_when_not_executed_through_CollapserPolicy(int parallelism)
         {
             // This test does not test RequestCollapser policy.
@@ -30,7 +30,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         }
 
         [Theory]
-        [ClassData(typeof(RequestCollapserTestParallelisms))]
+        [ClassData(typeof(CacheStampedeResilienceTestParallelisms))]
         public void Should_execute_concurrent_duplicate_task_single_time_when_custom_key_strategy_on_CollapserPolicy_forces_same_key(int parallelism)
         {
             Execute_parallel_delegates_through_policy_with_key_strategy(parallelism, useCollapser: true, sameKey: false, new CustomKeyStrategy(_ => "ConstantKey"))
@@ -39,7 +39,7 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         }
 
         [Theory]
-        [ClassData(typeof(RequestCollapserTestParallelisms))]
+        [ClassData(typeof(CacheStampedeResilienceTestParallelisms))]
         public void Should_execute_concurrent_non_duplicate_tasks_each_separately_despite_executed_through_CollapserPolicy(int parallelism)
         {
             Execute_parallel_delegates_through_policy_with_key_strategy(parallelism, useCollapser: true, sameKey: false)
@@ -51,14 +51,17 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         public async System.Threading.Tasks.Task Should_execute_sequential_duplicate_tasks_each_separately_despite_through_CollapserPolicy()
         {
             // Arrange
-            var policy = GetPolicy(useCollapser: true);
-            var context = new Context(SharedKey);
+            var policy = GetResiliencePipeline(useCollapser: true);
+            var context = ResilienceContextPool.Shared.Get(SharedKey);
 
             var first = ExecuteThroughPolicy(policy, context, 1, false);
             await first;
+            //ResilienceContextPool.Shared.Return(context);
 
+            context = ResilienceContextPool.Shared.Get(SharedKey);
             var second = ExecuteThroughPolicy(policy, context, 2, false);
             await second;
+            //ResilienceContextPool.Shared.Return(context);
 
             ActualExecutions.Should().Be(2);
         }
@@ -67,22 +70,22 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         public async System.Threading.Tasks.Task Should_execute_through_CollapserPolicy_using_configured_lock()
         {
             // Arrange
-            ISyncLockProvider underlyingLock = new InstanceScopedLockProvider();
+            ILockProvider underlyingLock = new InstanceScopedLockProvider();
             int lockAcquireCount = 0;
-            Mock<ISyncLockProvider> lockProviderMock = new Mock<ISyncLockProvider>();
+            Mock<ILockProvider> lockProviderMock = new Mock<ILockProvider>();
             lockProviderMock
-                .Setup(m => m.AcquireLock(It.IsAny<string>(), It.IsAny<Context>(), It.IsAny<CancellationToken>()))
-                .Returns<string, Context, CancellationToken>((k, c, ct) =>
+                .Setup(m => m.AcquireLockAsync(It.IsAny<string>(), It.IsAny<ResilienceContext>(), It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+                .Returns<string, ResilienceContext, CancellationToken, bool>((k, c, ct,cc) =>
                 {
                     lockAcquireCount++;
-                    return underlyingLock.AcquireLock(k, c, ct);
+                    return underlyingLock.AcquireLockAsync(k, c, ct,cc);
                 });
             
-            var policy = GetPolicy(useCollapser: true, lockProvider: lockProviderMock.Object);
-            var context = new Context(SharedKey);
+            var policy = GetResiliencePipeline(useCollapser: true, lockProvider: lockProviderMock.Object);
+            var context = ResilienceContextPool.Shared.Get(SharedKey);
 
             await ExecuteThroughPolicy(policy, context, 1, false);
-
+            ResilienceContextPool.Shared.Return(context);
             lockAcquireCount.Should().Be(2);
         }
 
@@ -90,35 +93,36 @@ namespace Polly.Contrib.DuplicateRequestCollapser.Specs
         public async System.Threading.Tasks.Task Should_execute_through_CollapserPolicy_using_configured_striped_lock()
         {
             // Arrange
-            ISyncLockProvider underlyingLock = new InstanceScopedStripedLockProvider();
+            ILockProvider underlyingLock = new InstanceScopedStripedLockProvider();
             int lockAcquireCount = 0;
-            Mock<ISyncLockProvider> lockProviderMock = new Mock<ISyncLockProvider>();
+            Mock<ILockProvider> lockProviderMock = new Mock<ILockProvider>();
             lockProviderMock
-                .Setup(m => m.AcquireLock(It.IsAny<string>(), It.IsAny<Context>(), It.IsAny<CancellationToken>()))
-                .Returns<string, Context, CancellationToken>((k, c, ct) =>
+                .Setup(m => m.AcquireLockAsync(It.IsAny<string>(), It.IsAny<ResilienceContext>(), It.IsAny<CancellationToken>(),It.IsAny<bool>()))
+                .Returns<string, ResilienceContext, CancellationToken,bool>((k, c, ct,cc) =>
                 {
                     lockAcquireCount++;
-                    return underlyingLock.AcquireLock(k, c, ct);
+                    return underlyingLock.AcquireLockAsync(k, c, ct,cc);
                 });
 
-            var policy = GetPolicy(useCollapser: true, lockProvider: lockProviderMock.Object);
-            var context = new Context(SharedKey);
+            var policy = GetResiliencePipeline(useCollapser: true, lockProvider: lockProviderMock.Object);
+            var context = ResilienceContextPool.Shared.Get(SharedKey);
 
             await ExecuteThroughPolicy(policy, context, 1, false);
+            //ResilienceContextPool.Shared.Return(context);
 
             lockAcquireCount.Should().Be(2);
         }
 
         private class CustomKeyStrategy : IKeyStrategy
         {
-            private Func<Context, string> _strategy;
+            private Func<ResilienceContext, string> _strategy;
 
-            public CustomKeyStrategy(Func<Context, string> strategy)
+            public CustomKeyStrategy(Func<ResilienceContext, string> strategy)
             {
                 _strategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
             }
 
-            public string GetKey(Context context) => _strategy(context);
+            public string GetKey(ResilienceContext context) => _strategy(context);
         }
     }
 }
