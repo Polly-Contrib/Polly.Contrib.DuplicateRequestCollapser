@@ -57,6 +57,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Polly.Contrib.DuplicateRequestCollapser </Title>
     <PackageId>DigitalRuby.$(AssemblyName)</PackageId>
+    <Authors>App vNext</Authors>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(MsBuildThisFileDirectory)..\$(PackageIcon)" Pack="true" PackagePath="" />
