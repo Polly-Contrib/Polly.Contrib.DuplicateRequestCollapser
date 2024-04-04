@@ -1,15 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;netstandard2.0;net472;net462</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <AssemblyName>Polly.Contrib.DuplicateRequestCollapser</AssemblyName>
     <RootNamespace>Polly.Contrib.DuplicateRequestCollapser</RootNamespace>
-    <Version>0.1.0-polly-v8-build0001</Version>
-    <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <PackageVersion>0.1.0-polly-v8-build0001</PackageVersion>
-    <FileVersion>0.1.0.0</FileVersion>
-    <InformationalVersion>0.1.0.0</InformationalVersion>
+    <Version>0.4.0-v040-0001</Version>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <PackageVersion>0.3.0-v040-0001</PackageVersion>
+    <FileVersion>0.4.0.0</FileVersion>
+    <InformationalVersion>0.4.0.0</InformationalVersion>
     <Company>App vNext</Company>
     <Copyright>Copyright (c) 2020, App vNext and contributors</Copyright>
     <Description>Polly.Contrib.DuplicateRequestCollapser is a Polly policy to collapse concurrent duplicate requests to a single execution, integrating with the Polly resilience project for .NET</Description>
