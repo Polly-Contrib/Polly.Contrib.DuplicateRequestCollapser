@@ -76,15 +76,17 @@ internal sealed class CacheStampedeResilienceStrategy : ResilienceStrategy
             // As soon as the lazy has returned a result to one thread, the concurrent request set is over, so we evict the lazy from the ConcurrentDictionary.
             // We need to evict within a lock, to be sure we are not, due to potential race with new threads populating, evicting a different lazy created by a different thread.
             // To reduce lock contention, first check outside the lock whether we still need to remove it (we will double-check inside the lock).
-            if (_collapser.TryGetValue(key, out Lazy<ValueTask<object>> currentValue))
+            Lazy<ValueTask<object>>? currentValue = null;
+            if (_collapser.TryGetValue(key, out currentValue))
             {
                 if (currentValue == lazy)
                 {
                     await using (_lockProvider.AcquireLockAsync(key, context, context.CancellationToken, context.ContinueOnCapturedContext)
                         .ConfigureAwait(context.ContinueOnCapturedContext))
                     {
+                        Lazy<ValueTask<object>>? valueWithinLock = null;
                         // Double-check that there has not been a race which updated the dictionary with a new value.
-                        if (_collapser.TryGetValue(key, out Lazy<ValueTask<object>> valueWithinLock))
+                        if (_collapser.TryGetValue(key, out valueWithinLock))
                         {
                             if (valueWithinLock == lazy)
                             {

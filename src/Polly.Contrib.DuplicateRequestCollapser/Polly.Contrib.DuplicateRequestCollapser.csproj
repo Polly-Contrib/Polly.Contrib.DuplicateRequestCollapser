@@ -5,11 +5,11 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>Polly.Contrib.DuplicateRequestCollapser</AssemblyName>
     <RootNamespace>Polly.Contrib.DuplicateRequestCollapser</RootNamespace>
-    <Version>0.3.0-v030-0001</Version>
-    <AssemblyVersion>0.3.0.0</AssemblyVersion>
-    <PackageVersion>0.3.0-v030-0001</PackageVersion>
-    <FileVersion>0.3.0.0</FileVersion>
-    <InformationalVersion>0.3.0.0</InformationalVersion>
+    <Version>0.4.0-v040-0001</Version>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <PackageVersion>0.3.0-v040-0001</PackageVersion>
+    <FileVersion>0.4.0.0</FileVersion>
+    <InformationalVersion>0.4.0.0</InformationalVersion>
     <Company>App vNext</Company>
     <Copyright>Copyright (c) 2020, App vNext and contributors</Copyright>
     <Description>Polly.Contrib.DuplicateRequestCollapser is a Polly policy to collapse concurrent duplicate requests to a single execution, integrating with the Polly resilience project for .NET</Description>
@@ -50,12 +50,16 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <AssemblyTitle>Polly.Contrib.DuplicateRequestCollapser</AssemblyTitle>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
-    <PackageIconUrl>https://raw.github.com/App-vNext/Polly/master/Polly.png</PackageIconUrl>
+    <PackageIcon>package-icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/Polly-Contrib/Polly.Contrib.DuplicateRequestCollapser</PackageProjectUrl>
     <PackageTags>Exception Handling Resilience Transient Fault Policy Polly</PackageTags>
     <PackageReleaseNotes>Custom build because the other nuget isn't getting a response from the owner</PackageReleaseNotes>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Polly.Contrib.DuplicateRequestCollapser </Title>
     <PackageId>DigitalRuby.$(AssemblyName)</PackageId>
+    <Authors>App vNext</Authors>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MsBuildThisFileDirectory)..\$(PackageIcon)" Pack="true" PackagePath="" />
+  </ItemGroup>
 </Project>
